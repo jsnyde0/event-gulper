@@ -47,3 +47,5 @@ indent-style = "space"
 markers = [
     "llm: marks tests as LLM-based (deselect with '-m \"not llm\"')",
 ]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
