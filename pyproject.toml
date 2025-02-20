@@ -1,0 +1,49 @@
+[project]
+name = "event-gulper"
+version = "0.1.0"
+description = "Gulp interesting Berlin events from different sources using Agentic AI."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mypy>=1.15.0",
+    "pre-commit>=4.1.0",
+    "pytest>=8.3.4",
+    "ruff>=0.9.7",
+]
+
+[tool.uv.workspace]
+members = [
+    "api",
+    "models",
+    "pipeline",
+]
+
+[tool.ruff]
+# Basic settings
+line-length = 88
+target-version = "py312"
+
+# Essential rules for your current codebase
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+]
+
+# Directories to ignore
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+markers = [
+    "llm: marks tests as LLM-based (deselect with '-m \"not llm\"')",
+]
