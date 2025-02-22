@@ -24,7 +24,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run tests
-        run: uv run pytest
+        run: uv run --package pipeline pytest
 
       - name: Run Ruff
         run: |
