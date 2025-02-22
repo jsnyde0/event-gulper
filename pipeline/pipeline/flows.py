@@ -38,7 +38,6 @@ async def scrape_siegessaeule_events(target_date: date) -> List[str]:
     """
 
     # Log flow start
-    print(f"Starting scrape for date: {target_date}")
     logfire.info("Starting scrape for date: {target_date}", target_date=target_date)
 
     # Execute task
