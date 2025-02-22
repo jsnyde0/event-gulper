@@ -1,9 +1,16 @@
+import os
 from datetime import date
 from typing import List
 
+import logfire
+from dotenv import load_dotenv
 from prefect import flow, task
 
 from pipeline.scraper import get_event_urls
+
+load_dotenv()
+
+logfire.configure(token=os.getenv("LOGFIRE_WRITE_TOKEN"))
 
 
 @task(
@@ -32,11 +39,12 @@ async def scrape_siegessaeule_events(target_date: date) -> List[str]:
 
     # Log flow start
     print(f"Starting scrape for date: {target_date}")
+    logfire.info("Starting scrape for date: {target_date}", target_date=target_date)
 
     # Execute task
     event_urls = await fetch_siegessaeule_event_urls(target_date)
 
     # Log results
-    print(f"Found {len(event_urls)} events")
+    logfire.info("Scraped {count} events", count=len(event_urls))
 
     return event_urls
