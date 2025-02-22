@@ -1,16 +1,17 @@
 import pytest
 
-from pipeline.scraper import get_page_first_h3
+from pipeline.scraper import get_event_urls
 
 
 @pytest.mark.asyncio
-async def test_get_page_title():
+async def test_get_event_urls():
     # Call our function
-    h3 = await get_page_first_h3(
+    event_urls = await get_event_urls(
         "https://www.siegessaeule.de/en/events/?date=2025-02-20"
     )
 
-    print("h3: ", h3)
+    print("event_urls: \n", event_urls)
 
     # Assert the result
-    assert h3 == "Berlin event tips"
+    first_url = "https://www.siegessaeule.de/en/events/mix/psychologische-beratung/2025-02-20/17:00/"
+    assert first_url in event_urls
