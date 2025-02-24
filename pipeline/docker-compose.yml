@@ -7,6 +7,7 @@ services:
       - prefect-data:/root/.prefect
     environment:
       - PREFECT_SERVER_API_HOST=0.0.0.0
+      - PREFECT_SERVER_API_PORT=4200
       - PREFECT_UI_API_URL=http://127.0.0.1:4200/api
     command: ["prefect", "server", "start"]
 
@@ -16,7 +17,6 @@ services:
       dockerfile: Dockerfile
     environment:
       - PREFECT_API_URL=http://orchestrator:4200/api
-      - PREFECT_UI_URL=http://127.0.0.1:4200
     env_file:
       - ../.env
     depends_on:
