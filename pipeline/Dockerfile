@@ -1,5 +1,5 @@
 # Builder stage
-FROM python:3.12-slim-bookworm AS builder
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -12,9 +12,7 @@ COPY ../pyproject.toml ./
 COPY . ./pipeline/
 
 # Install UV and dependencies (excluding our pipeline package)
-RUN pip install --upgrade pip && \
-    pip install uv && \
-    cd pipeline && \
+RUN cd pipeline && \
     uv pip install --system .
 
 # Final stage
