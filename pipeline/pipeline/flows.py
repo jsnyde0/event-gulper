@@ -6,7 +6,8 @@ import logfire
 from dotenv import load_dotenv
 from prefect import flow, task
 
-from pipeline.models import EventURL
+from pipeline.database import init_db, save_event_urls
+from pipeline.models import EventURLValidator
 from pipeline.scraper import get_event_urls
 
 load_dotenv()
@@ -33,14 +34,14 @@ async def fetch_siegessaeule_event_urls(
     url = f"https://www.siegessaeule.de/en/events/?date={target_date}"
     raw_urls = await get_event_urls(url)
 
-    # Simple validation
+    # Validation
     valid_urls = []
     invalid_urls = []
 
     for url in raw_urls:
         try:
-            # Just validate that it's a valid URL
-            EventURL(url=url)
+            # Use the validator model
+            EventURLValidator(url=url)
             valid_urls.append(url)
         except Exception as e:
             logfire.warning("Invalid URL: {url} - {error}", url=url, error=str(e))
@@ -49,17 +50,37 @@ async def fetch_siegessaeule_event_urls(
     return valid_urls, invalid_urls
 
 
+@task(
+    name="save_event_urls_to_db",
+    description="Save valid event URLs to the database",
+    retries=2,
+    retry_delay_seconds=30,
+)
+def save_event_urls_to_db(valid_urls: List[str]) -> int:
+    """
+    Task to save valid event URLs to the database.
+    Will retry 2 times with 30 second delay if it fails.
+
+    Returns:
+        Number of new events saved
+    """
+    return save_event_urls(valid_urls)
+
+
 @flow(
     name="siegessaeule_event_scraper",
     description="Scrape Siegessaeule events for a specific date",
 )
-async def scrape_siegessaeule_events(target_date: date) -> Tuple[List[str], List[str]]:
+async def scrape_siegessaeule_events(
+    target_date: date,
+) -> Tuple[List[str], List[str], int]:
     """
     Main flow that orchestrates the scraping process for Siegessaeule events.
 
     Returns:
-        Tuple of (valid_urls, invalid_urls)
+        Tuple of (valid_urls, invalid_urls, new_events_count)
     """
+
     # Log flow start
     logfire.info("Starting scrape for date: {target_date}", target_date=target_date)
 
@@ -74,4 +95,11 @@ async def scrape_siegessaeule_events(target_date: date) -> Tuple[List[str], List
         invalid=len(invalid_urls),
     )
 
-    return valid_urls, invalid_urls
+    # Save valid URLs to database
+    init_db()
+    new_events_count = save_event_urls_to_db(valid_urls)
+
+    # Log database results
+    logfire.info("Saved {count} new events to database", count=new_events_count)
+
+    return valid_urls, invalid_urls, new_events_count
