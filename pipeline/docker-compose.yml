@@ -10,6 +10,28 @@ services:
       - PREFECT_SERVER_API_PORT=4200
       - PREFECT_UI_API_URL=http://127.0.0.1:4200/api
     command: ["prefect", "server", "start"]
+    healthcheck:
+      test: ["CMD", "prefect", "version"]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: events
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 1s
+      timeout: 1s
+      retries: 2
 
   scraper:
     build:
@@ -17,10 +39,15 @@ services:
       dockerfile: Dockerfile
     environment:
       - PREFECT_API_URL=http://orchestrator:4200/api
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/events
     env_file:
       - ../.env
     depends_on:
-      - orchestrator
+      orchestrator:
+        condition: service_healthy
+      db:
+        condition: service_healthy
 
 volumes:
   prefect-data:
+  postgres-data:
