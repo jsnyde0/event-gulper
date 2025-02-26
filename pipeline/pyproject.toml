@@ -8,6 +8,7 @@ dependencies = [
     "beautifulsoup4>=4.13.3",
     "httpx>=0.28.1",
     "logfire>=3.6.2",
+    "markdownify>=1.0.0",
     "prefect>=3.2.6",
     "psycopg2-binary>=2.9.10",
     "pydantic>=2.10.6",

@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import Dict, List
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
@@ -45,3 +45,38 @@ async def get_event_urls(page_url: str) -> List[str]:
     event_paths = filter_event_paths(paths)
     base_url = get_base_url(page_url)
     return construct_event_urls(base_url, event_paths)
+
+
+async def scrape_section(url: str, section_selector: str = "main") -> Dict[str, str]:
+    """
+    A generalized scraper that extracts content from a main section of a webpage.
+
+    Args:
+        url: The URL to scrape
+        section_selector: CSS selector to find the main section (default: "main")
+
+    Returns:
+        A string of markdown content
+    """
+    async with AsyncClient() as client:
+        response = await client.get(url)
+        response.raise_for_status()
+
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    # Find the main section
+    main_section = soup.select_one(section_selector)
+    if not main_section:
+        return {
+            "error": f"Could not find section matching selector: {section_selector}"
+        }
+
+    # Extract HTML from the section
+    section_html = str(main_section)
+
+    # Process with markdownify instead of html2text
+    from markdownify import markdownify as md
+
+    markdown = md(section_html, heading_style="ATX", bullets="-")
+
+    return markdown
