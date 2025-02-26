@@ -31,22 +31,19 @@ class EventDetail(BaseModel):
         None, description="The full description of the event"
     )
     location: Optional[str] = Field(None, description="The location of the event")
-    # start_time: datetime = Field(..., description="When the event starts")
-    # end_time: Optional[datetime] = Field(None, description="When the event ends")
+    start_time: datetime = Field(..., description="When the event starts")
+    end_time: Optional[datetime] = Field(None, description="When the event ends")
     organizer: Optional[str] = Field(None, description="Who is organizing the event")
-    # source_url: Optional[HttpUrl] = Field(
-    #     None, description="External URL (e.g., Facebook event, venue website)"
-    # )
-    # image_url: Optional[HttpUrl] = Field(
-    #     None, description="URL to the main event image found on the detail page"
-    # )
+    source_url: Optional[HttpUrl] = Field(
+        None, description="External URL (e.g., Facebook event, venue website)"
+    )
+    image_url: Optional[HttpUrl] = Field(
+        None, description="URL to the main event image found on the detail page"
+    )
     attendees: Optional[int] = Field(
         None, description="Number of attendees if available"
     )
     price: Optional[Decimal] = Field(None, description="Event price in euros")
-    # original_tags: list[str] = Field(
-    #     [], description="The original tags of the event found on the detail page"
-    # )
-
-    # class Config:
-    #     json_encoders = {datetime: lambda v: v.isoformat(), Decimal: lambda v: str(v)}
+    original_tags: list[str] = Field(
+        [], description="The original tags of the event found on the detail page"
+    )

@@ -62,6 +62,8 @@ async def test_extract_event_data():
     # extract event data
     event_data = await extract_event_data(section_md)
 
+    # print("\n\nevent_data: \n", event_data, "\n\n")
+
     # assert event data
     assert event_data.title == "Psychologische Beratung"
     assert "HIV" in event_data.summary
