@@ -2,15 +2,11 @@ import re
 from typing import Dict, List
 from urllib.parse import urljoin, urlparse
 
-import instructor
 from bs4 import BeautifulSoup
 from httpx import AsyncClient
-from openai import AsyncOpenAI
-
-from pipeline.models import EventDetail
 
 
-async def get_event_paths(page_url: str) -> List[str]:
+async def _get_event_paths(page_url: str) -> List[str]:
     """Extract all href paths from content-block elements."""
     async with AsyncClient() as client:
         response = await client.get(page_url)
@@ -26,18 +22,18 @@ async def get_event_paths(page_url: str) -> List[str]:
         ]
 
 
-def filter_event_paths(paths: List[str]) -> List[str]:
+def _filter_event_paths(paths: List[str]) -> List[str]:
     """Filter paths to only include event detail pages."""
     event_path_pattern = r"^/en/events/[^/]+/[^/]+/\d{4}-\d{2}-\d{2}/\d{2}:\d{2}/$"
     return [path for path in paths if re.match(event_path_pattern, path)]
 
 
-def construct_event_urls(base_url: str, paths: List[str]) -> List[str]:
+def _construct_event_urls(base_url: str, paths: List[str]) -> List[str]:
     """Convert event paths to full URLs."""
     return [urljoin(base_url, path) for path in paths]
 
 
-def get_base_url(url: str) -> str:
+def _get_base_url(url: str) -> str:
     """Extract the base URL from a given URL."""
     parsed_url = urlparse(url)
     return f"{parsed_url.scheme}://{parsed_url.netloc}"
@@ -45,10 +41,10 @@ def get_base_url(url: str) -> str:
 
 async def get_event_urls(page_url: str) -> List[str]:
     """Main function to get all event URLs from a page."""
-    paths = await get_event_paths(page_url)
-    event_paths = filter_event_paths(paths)
-    base_url = get_base_url(page_url)
-    return construct_event_urls(base_url, event_paths)
+    paths = await _get_event_paths(page_url)
+    event_paths = _filter_event_paths(paths)
+    base_url = _get_base_url(page_url)
+    return _construct_event_urls(base_url, event_paths)
 
 
 async def scrape_section(url: str, section_selector: str = "main") -> Dict[str, str]:
@@ -84,33 +80,3 @@ async def scrape_section(url: str, section_selector: str = "main") -> Dict[str, 
     markdown = md(section_html, heading_style="ATX", bullets="-")
 
     return markdown
-
-
-async def extract_event_data(event_md: str) -> EventDetail:
-    """
-    Extract structured event data from markdown content using the Instructor LLM.
-
-    Args:
-        event_md (str): Scraped event content in markdown format.
-
-    Returns:
-        EventDetail: Structured event data.
-    """
-    # Prepare a prompt to enforce strict JSON output.
-    prompt = (
-        "Extract the following event details from the markdown content. "
-        "Do not include any extra commentary. "
-        f"Event content in markdown: '''\n{event_md}\n'''"
-    )
-
-    # Initialize Instructor client.
-    client = instructor.from_openai(AsyncOpenAI())
-
-    # Get the structured output as a string.
-    result = await client.chat.completions.create(
-        model="gpt-4o-mini",
-        response_model=EventDetail,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    return result

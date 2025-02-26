@@ -3,7 +3,7 @@ from typing import List
 
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from .models import EventURL
+from pipeline.models.events import EventURL
 
 # Get database connection string from environment variables
 DATABASE_URL = os.getenv(

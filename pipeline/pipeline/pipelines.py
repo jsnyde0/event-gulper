@@ -6,9 +6,9 @@ import logfire
 from dotenv import load_dotenv
 from prefect import flow, task
 
-from pipeline.database import init_db, save_event_urls
-from pipeline.models import EventURLValidator
-from pipeline.scraper import get_event_urls
+from pipeline.extract.siegessaeule import get_event_urls
+from pipeline.load.database import init_db, save_event_urls
+from pipeline.models.events import EventURLValidator
 
 load_dotenv()
 
