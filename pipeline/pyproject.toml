@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.13.3",
     "httpx>=0.28.1",
+    "instructor>=1.7.2",
     "logfire>=3.6.2",
     "markdownify>=1.0.0",
     "prefect>=3.2.6",
