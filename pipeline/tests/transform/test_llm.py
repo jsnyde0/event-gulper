@@ -1,12 +1,12 @@
 import pytest
 
 from pipeline.extract.siegessaeule import scrape_section
-from pipeline.transform.llm import extract_event_data
+from pipeline.transform.llm import extract_structured_event
 
 
 @pytest.mark.asyncio
 @pytest.mark.llm
-async def test_extract_event_data():
+async def test_extract_structured_event():
     # Use a specific event URL for testing
     event_url = "https://www.siegessaeule.de/en/events/mix/psychologische-beratung/2025-02-20/17:00/"
 
@@ -14,7 +14,7 @@ async def test_extract_event_data():
     section_md = await scrape_section(event_url)
 
     # extract event data
-    event_data = await extract_event_data(section_md)
+    event_data = await extract_structured_event.fn(section_md)
 
     # print("\n\nevent_data: \n", event_data, "\n\n")
 

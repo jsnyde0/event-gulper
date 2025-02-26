@@ -8,6 +8,7 @@ from prefect import flow, task
 
 from pipeline.extract.siegessaeule import fetch_event_content, fetch_event_urls
 from pipeline.load.database import init_db, save_event_urls
+from pipeline.transform.llm import extract_structured_event
 
 load_dotenv()
 
@@ -60,8 +61,12 @@ async def scrape_siegessaeule_events(
     # Log database results
     logfire.info("Saved {count} new events to database", count=new_events_count)
 
-    # Fetch event content
-    event_content = await fetch_event_content.fn(event_urls[0])
-    logfire.info("Fetched event content", content=event_content)
+    # Fetch event content in markdown format
+    event_md = await fetch_event_content.fn(event_urls[0])
+    logfire.info("Fetched event content", content=event_md)
+
+    # Extract structured event data
+    structured_event = await extract_structured_event(event_md)
+    logfire.info("Extracted structured event data", data=structured_event)
 
     return event_urls, new_events_count

@@ -1,10 +1,16 @@
 import instructor
 from openai import AsyncOpenAI
+from prefect.tasks import task
 
 from pipeline.models.events import EventDetail
 
 
-async def extract_event_data(event_md: str) -> EventDetail:
+@task(
+    name="extract_structured_event",
+    retries=2,
+    retry_delay_seconds=30,
+)
+async def extract_structured_event(event_md: str) -> EventDetail:
     """
     Extract structured event data from markdown content using the Instructor LLM.
 
