@@ -1,14 +1,15 @@
+from datetime import date
+
 import pytest
 
-from pipeline.extract.siegessaeule import get_event_urls, scrape_section
+from pipeline.extract.siegessaeule import fetch_event_content, fetch_event_urls
 
 
 @pytest.mark.asyncio
 async def test_get_event_urls():
     # Call our function
-    event_urls = await get_event_urls(
-        "https://www.siegessaeule.de/en/events/?date=2025-02-20"
-    )
+    target_date = date(2025, 2, 20)
+    event_urls = await fetch_event_urls.fn(target_date)
 
     # Assert the result
     first_url = "https://www.siegessaeule.de/en/events/mix/psychologische-beratung/2025-02-20/17:00/"
@@ -21,7 +22,7 @@ async def test_scrape_section():
     event_url = "https://www.siegessaeule.de/en/events/mix/psychologische-beratung/2025-02-20/17:00/"
 
     # Call our function
-    section_md = await scrape_section(event_url)
+    section_md = await fetch_event_content.fn(event_url)
 
     # Assert the results contains expected elements
     assert "### Psychologische Beratung" in section_md

@@ -1,9 +1,11 @@
 import re
+from datetime import date
 from typing import Dict, List
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 from httpx import AsyncClient
+from prefect.tasks import task
 
 
 async def _get_event_paths(page_url: str) -> List[str]:
@@ -39,8 +41,25 @@ def _get_base_url(url: str) -> str:
     return f"{parsed_url.scheme}://{parsed_url.netloc}"
 
 
-async def get_event_urls(page_url: str) -> List[str]:
-    """Main function to get all event URLs from a page."""
+@task(
+    name="fetch_event_urls",
+    description="Fetch all Siegessaeule event URLs for a given date",
+    retries=3,
+    retry_delay_seconds=60,
+)
+async def fetch_event_urls(
+    target_date: date,
+) -> List[str]:
+    """
+    Task to fetch Siegessaeule event URLs with retry logic.
+    Will retry 3 times with 1 minute delay if it fails.
+
+    Returns:
+        List of event URLs for the given date
+    """
+    date_str = target_date.strftime("%Y-%m-%d")
+    page_url = f"https://www.siegessaeule.de/en/events/?date={date_str}"
+
     paths = await _get_event_paths(page_url)
     event_paths = _filter_event_paths(paths)
     base_url = _get_base_url(page_url)
@@ -80,3 +99,15 @@ async def scrape_section(url: str, section_selector: str = "main") -> Dict[str, 
     markdown = md(section_html, heading_style="ATX", bullets="-")
 
     return markdown
+
+
+@task(
+    name="fetch_event_content",
+    retries=2,
+    retry_delay_seconds=30,
+)
+async def fetch_event_content(url: str) -> Dict[str, str]:
+    """
+    Task to fetch event content from a given URL in markdown format.
+    """
+    return await scrape_section(url)

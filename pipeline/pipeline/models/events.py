@@ -6,13 +6,6 @@ from pydantic import BaseModel, HttpUrl
 from sqlmodel import Field, SQLModel
 
 
-# For URL validation only
-class EventURLValidator(BaseModel):
-    """Pydantic model for validating URLs."""
-
-    url: HttpUrl
-
-
 # For database storage
 class EventURL(SQLModel, table=True):
     """SQLModel for database storage of events."""
