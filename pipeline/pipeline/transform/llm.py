@@ -1,5 +1,5 @@
 import instructor
-from openai import AsyncOpenAI
+import logfire
 from prefect.tasks import task
 
 from pipeline.models.events import EventDetail
@@ -10,7 +10,10 @@ from pipeline.models.events import EventDetail
     retries=2,
     retry_delay_seconds=30,
 )
-async def extract_structured_event(event_md: str) -> EventDetail:
+@logfire.instrument("LLM extraction for event content")
+async def extract_structured_event(
+    llm_client: instructor.AsyncInstructor, event_md: str
+) -> EventDetail:
     """
     Extract structured event data from markdown content using the Instructor LLM.
 
@@ -27,14 +30,11 @@ async def extract_structured_event(event_md: str) -> EventDetail:
         f"Event content in markdown: '''\n{event_md}\n'''"
     )
 
-    # Initialize Instructor client.
-    client = instructor.from_openai(AsyncOpenAI())
-
     # Get the structured output as a string.
-    result = await client.chat.completions.create(
+    extracted_event = await llm_client.chat.completions.create(
         model="gpt-4o-mini",
         response_model=EventDetail,
         messages=[{"role": "user", "content": prompt}],
     )
 
-    return result
+    return extracted_event

@@ -6,7 +6,7 @@ if __name__ == "__main__":
     # You can adjust the parameters (and interval, cron or tags) as needed.
     scrape_siegessaeule_events.serve(
         name="siegessaeule-scraper-deployment",
-        parameters={"target_date": "2025-02-20"},
+        parameters={"target_date": "2025-02-20", "batch_size": 10},
         # interval=60,  # poll every 60 seconds
         pause_on_shutdown=True,
     )

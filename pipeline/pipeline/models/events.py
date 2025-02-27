@@ -24,7 +24,7 @@ class EventDetail(BaseModel):
         None, description="The full description of the event"
     )
     location: Optional[str] = Field(None, description="The location of the event")
-    start_time: datetime = Field(..., description="When the event starts")
+    start_time: Optional[datetime] = Field(None, description="When the event starts")
     end_time: Optional[datetime] = Field(None, description="When the event ends")
     organizer: Optional[str] = Field(None, description="Who is organizing the event")
     source_url: Optional[HttpUrl] = Field(
@@ -37,6 +37,6 @@ class EventDetail(BaseModel):
         None, description="Number of attendees if available"
     )
     price: Optional[Decimal] = Field(None, description="Event price in euros")
-    original_tags: list[str] = Field(
+    original_tags: Optional[list[str]] = Field(
         [], description="The original tags of the event found on the detail page"
     )

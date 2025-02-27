@@ -1,6 +1,6 @@
 import re
 from datetime import date
-from typing import Dict, List
+from typing import AsyncGenerator, Dict, List
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
@@ -48,14 +48,17 @@ def _get_base_url(url: str) -> str:
     retry_delay_seconds=60,
 )
 async def fetch_event_urls(
-    target_date: date,
-) -> List[str]:
+    target_date: date, batch_size: int = 10
+) -> AsyncGenerator[List[str], None]:
     """
-    Task to fetch Siegessaeule event URLs with retry logic.
-    Will retry 3 times with 1 minute delay if it fails.
+    Generate batches of event URLs for a given date.
 
-    Returns:
-        List of event URLs for the given date
+    Args:
+        target_date: The date to fetch events for
+        batch_size: Number of URLs per batch
+
+    Yields:
+        Batches of event URLs
     """
     date_str = target_date.strftime("%Y-%m-%d")
     page_url = f"https://www.siegessaeule.de/en/events/?date={date_str}"
@@ -63,7 +66,19 @@ async def fetch_event_urls(
     paths = await _get_event_paths(page_url)
     event_paths = _filter_event_paths(paths)
     base_url = _get_base_url(page_url)
-    return _construct_event_urls(base_url, event_paths)
+    all_urls = _construct_event_urls(base_url, event_paths)
+
+    # Yield URLs in batches
+    for i in range(0, len(all_urls), batch_size):
+        url_batch = all_urls[i : i + batch_size]
+        # logfire.info(
+        #     "Yielding batch of {count} URLs ({start} to {end} of {total})",
+        #     count=len(url_batch),
+        #     start=i + 1,
+        #     end=min(i + batch_size, len(all_urls)),
+        #     total=len(all_urls)
+        # )
+        yield url_batch
 
 
 async def scrape_section(url: str, section_selector: str = "main") -> Dict[str, str]:
