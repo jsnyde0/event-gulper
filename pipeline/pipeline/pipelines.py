@@ -38,35 +38,6 @@ def save_event_urls_to_db(valid_urls: List[str]) -> int:
     return save_event_urls(valid_urls)
 
 
-async def process_url(url: str):
-    """Process a single URL through the pipeline"""
-    start_time = time.time()
-    try:
-        # Extract content
-        content = await fetch_event_content.fn(url)
-        extract_time = time.time()
-        logfire.info(
-            "Content extraction took {seconds:.2f}s for {url}",
-            seconds=extract_time - start_time,
-            url=url,
-        )
-
-        # Transform to structured data
-        event = await extract_structured_event.fn(llm_client, content)
-        transform_time = time.time()
-        logfire.info(
-            "LLM transform took {seconds:.2f}s for {url}",
-            seconds=transform_time - extract_time,
-            url=url,
-        )
-
-        return event
-
-    except Exception as e:
-        logfire.error("Failed to process URL {url}: {error}", url=url, error=str(e))
-        raise
-
-
 @flow(
     name="siegessaeule_event_scraper",
     description="Scrape Siegessaeule events for a specific date",
@@ -92,9 +63,24 @@ async def scrape_siegessaeule_events(
             size=len(url_batch),
         )
 
-        # Process all URLs in batch concurrently
-        tasks = [process_url(url) for url in url_batch]
-        batch_results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Process content extraction concurrently
+        with logfire.span(f"batch_{batch_count}_content_extraction"):
+            content_tasks = [fetch_event_content.fn(url) for url in url_batch]
+            contents = await asyncio.gather(*content_tasks)
+
+        # Process LLM extraction concurrently
+        with logfire.span(f"batch_{batch_count}_llm_extraction"):
+            llm_tasks = [
+                extract_structured_event.fn(llm_client, content) for content in contents
+            ]
+            batch_results = await asyncio.gather(*llm_tasks, return_exceptions=True)
+
+            # Handle results
+            for result in batch_results:
+                if isinstance(result, Exception):
+                    logfire.error(f"Failed to process event: {result}")
+                else:
+                    all_events.append(result)
 
         batch_end = time.time()
         logfire.info(
@@ -102,11 +88,6 @@ async def scrape_siegessaeule_events(
             num=batch_count,
             seconds=batch_end - batch_start,
         )
-
-        # Handle results...
-        for result in batch_results:
-            if not isinstance(result, Exception):
-                all_events.append(result)
 
         # only process first batch for testing
         break

@@ -1,5 +1,4 @@
 import instructor
-import logfire
 from prefect.tasks import task
 
 from pipeline.models.events import EventDetail
@@ -10,7 +9,6 @@ from pipeline.models.events import EventDetail
     retries=2,
     retry_delay_seconds=30,
 )
-@logfire.instrument("LLM extraction for event content")
 async def extract_structured_event(
     llm_client: instructor.AsyncInstructor, event_md: str
 ) -> EventDetail:
