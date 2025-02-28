@@ -1,3 +1,4 @@
+import asyncio
 import re
 from datetime import date
 from typing import AsyncGenerator, Dict, List
@@ -81,7 +82,9 @@ async def fetch_event_urls(
         yield url_batch
 
 
-async def scrape_section(url: str, section_selector: str = "main") -> Dict[str, str]:
+async def scrape_event_details_md(
+    url: str, section_selector: str = "main"
+) -> Dict[str, str]:
     """
     A generalized scraper that extracts content from a main section of a webpage.
 
@@ -117,12 +120,13 @@ async def scrape_section(url: str, section_selector: str = "main") -> Dict[str, 
 
 
 @task(
-    name="fetch_event_content",
+    name="scrape_events_details_md",
     retries=2,
     retry_delay_seconds=30,
 )
-async def fetch_event_content(url: str) -> Dict[str, str]:
+async def scrape_events_details_md(url_batch: List[str]) -> Dict[str, str]:
     """
-    Task to fetch event content from a given URL in markdown format.
+    Task to fetch event content for a list of URLs in markdown format.
     """
-    return await scrape_section(url)
+    content_tasks = [scrape_event_details_md(url) for url in url_batch]
+    return await asyncio.gather(*content_tasks)

@@ -11,9 +11,12 @@ from httpx import AsyncClient
 from openai import AsyncOpenAI
 from prefect import flow
 
-from pipeline.extract.siegessaeule import fetch_event_content, fetch_event_urls
+from pipeline.extract.siegessaeule import (
+    fetch_event_urls,
+    scrape_events_details_md,
+)
 from pipeline.models.events import EventDetail
-from pipeline.transform.llm import extract_structured_event
+from pipeline.transform.llm import md_to_event_structure
 
 load_dotenv()
 
@@ -40,12 +43,11 @@ async def scrape_events(
         async for url_batch in fetch_event_urls(target_date, batch_size):
             with logfire.span("process_batch {i}", i=i):
                 # Extract
-                content_tasks = [fetch_event_content.fn(url) for url in url_batch]
-                contents = await asyncio.gather(*content_tasks)
+                contents = await scrape_events_details_md(url_batch)
 
                 # Transform
                 llm_tasks = [
-                    extract_structured_event.fn(llm_client, content)
+                    md_to_event_structure.fn(llm_client, content)
                     for content in contents
                 ]
                 batch_results = await asyncio.gather(*llm_tasks, return_exceptions=True)
@@ -80,14 +82,20 @@ async def scrape_events(
     description="Scrape Siegessaeule events for a specific date",
 )
 async def scrape_siegessaeule_events(
-    target_date: date, batch_size: int = 10
+    target_date: date,
+    batch_size: int = 10,
+    max_batches: int | None = None,
 ) -> Tuple[List[EventDetail]]:
     """
     Main flow that processes events in concurrent batches.
     """
     flow_start = time.time()
 
-    all_events = await scrape_events(target_date, batch_size=batch_size, max_batches=2)
+    all_events = await scrape_events(
+        target_date,
+        batch_size=batch_size,
+        max_batches=max_batches,
+    )
 
     flow_end = time.time()
     logfire.info(

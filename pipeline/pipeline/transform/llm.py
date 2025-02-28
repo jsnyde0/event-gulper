@@ -5,11 +5,11 @@ from pipeline.models.events import EventDetail
 
 
 @task(
-    name="extract_structured_event",
+    name="md_to_event_structure",
     retries=2,
     retry_delay_seconds=30,
 )
-async def extract_structured_event(
+async def md_to_event_structure(
     llm_client: instructor.AsyncInstructor, event_md: str
 ) -> EventDetail:
     """
