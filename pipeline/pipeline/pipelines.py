@@ -11,7 +11,7 @@ from openai import AsyncOpenAI
 from prefect import flow
 
 from pipeline.a_source.siegessaeule import SiegessaeuleSource
-from pipeline.b_extract.siegessaeule import scrape_events_details_md
+from pipeline.b_extract.siegessaeule import SiegessaeuleExtractor
 from pipeline.c_transform.llm import md_to_event_structure_batch
 from pipeline.models.events import EventDetail
 
@@ -42,13 +42,14 @@ async def scrape_siegessaeule(
 
     # Create the data source
     source = SiegessaeuleSource(target_date, batch_size, max_batches)
+    extractor = SiegessaeuleExtractor(http_client)
 
     try:
         batch_count = 0
         async for url_batch in source.fetch_batches():
             with logfire.span("process_batch {batch_num}", batch_num=batch_count):
                 # Extract
-                events_md = await scrape_events_details_md(url_batch)
+                events_md = await extractor.extract(url_batch)
 
                 # Transform
                 structured_events = await md_to_event_structure_batch(

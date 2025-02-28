@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 from httpx import AsyncClient
 from prefect.tasks import task
 
+from pipeline.b_extract.protocols import Extractor
+
 
 async def scrape_event_details_md(
     url: str, section_selector: str = "main"
@@ -54,3 +56,23 @@ async def scrape_events_details_md(url_batch: List[str]) -> Dict[str, str]:
     """
     content_tasks = [scrape_event_details_md(url) for url in url_batch]
     return await asyncio.gather(*content_tasks)
+
+
+class SiegessaeuleExtractor(Extractor[str]):
+    """
+    Extractor for Siegessaeule events.
+
+    Takes URLs as input and outputs event details in markdown format.
+    """
+
+    def __init__(self, http_client: AsyncClient):
+        """
+        Initialize the extractor with an HTTP client.
+        """
+        self.http_client = http_client
+
+    async def extract(self, url_batch: List[str]) -> List[str]:
+        """
+        Extract event details as markdown from a batch of URLs.
+        """
+        return await scrape_events_details_md(url_batch)
