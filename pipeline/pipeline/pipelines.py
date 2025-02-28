@@ -1,4 +1,3 @@
-import asyncio
 import os
 import time
 from datetime import date
@@ -16,7 +15,7 @@ from pipeline.extract.siegessaeule import (
     scrape_events_details_md,
 )
 from pipeline.models.events import EventDetail
-from pipeline.transform.llm import md_to_event_structure
+from pipeline.transform.llm import md_to_event_structure_batch
 
 load_dotenv()
 
@@ -26,7 +25,7 @@ logfire.configure(token=os.getenv("LOGFIRE_WRITE_TOKEN"))
 async def scrape_events(
     target_date: date,
     batch_size: int = 5,
-    max_batches: int | None = None,
+    max_batches: int | None = 2,
     # *,
     # http_client: AsyncClient,
     # llm_client: instructor.AsyncInstructor,
@@ -43,29 +42,23 @@ async def scrape_events(
         async for url_batch in fetch_event_urls(target_date, batch_size):
             with logfire.span("process_batch {i}", i=i):
                 # Extract
-                contents = await scrape_events_details_md(url_batch)
+                events_md = await scrape_events_details_md(url_batch)
 
                 # Transform
-                llm_tasks = [
-                    md_to_event_structure.fn(llm_client, content)
-                    for content in contents
-                ]
-                batch_results = await asyncio.gather(*llm_tasks, return_exceptions=True)
-                successful_results = [
-                    result
-                    for result in batch_results
-                    if not isinstance(result, Exception)
-                ]
-                all_events.extend(successful_results)
+                structured_events = await md_to_event_structure_batch(
+                    llm_client, events_md
+                )
+                all_events.extend(structured_events)
 
-                if successful_results:
+                # Log
+                if structured_events:
                     logfire.info(
                         "Processed batch {i}",
                         i=i,
-                        first_result=successful_results[0],
+                        first_result=structured_events[0],
                     )
                 else:
-                    logfire.warning(f"Batch {i} had no successful results")
+                    logfire.warning(f"Batch {i} yielded no structured events.")
 
             i += 1
             if max_batches is not None and i >= max_batches:
@@ -83,8 +76,8 @@ async def scrape_events(
 )
 async def scrape_siegessaeule_events(
     target_date: date,
-    batch_size: int = 10,
-    max_batches: int | None = None,
+    batch_size: int = 5,
+    max_batches: int | None = 2,
 ) -> Tuple[List[EventDetail]]:
     """
     Main flow that processes events in concurrent batches.

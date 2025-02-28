@@ -14,7 +14,7 @@ async def test_md_to_event_structure(llm_client):
     section_md = await scrape_event_details_md(event_url)
 
     # extract event data
-    event_data = await md_to_event_structure.fn(llm_client, section_md)
+    event_data = await md_to_event_structure(llm_client, section_md)
 
     # print("\n\nevent_data: \n", event_data, "\n\n")
 

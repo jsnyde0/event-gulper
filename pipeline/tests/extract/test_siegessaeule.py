@@ -22,7 +22,7 @@ async def test_url_stream():
         "https://www.siegessaeule.de/en/events/sex/bear-goes-naughty/2025-02-20/18:00/",
     ]
     i = 0
-    async for url_batch in fetch_event_urls.fn(target_date, batch_size=10):
+    async for url_batch in fetch_event_urls(target_date, batch_size=10):
         assert url_batch[0] == first_urls_per_batch[i]
         i += 1
 

@@ -1,14 +1,14 @@
+import asyncio
+import hashlib
+import json
+from typing import List
+
 import instructor
 from prefect.tasks import task
 
 from pipeline.models.events import EventDetail
 
 
-@task(
-    name="md_to_event_structure",
-    retries=2,
-    retry_delay_seconds=30,
-)
 async def md_to_event_structure(
     llm_client: instructor.AsyncInstructor, event_md: str
 ) -> EventDetail:
@@ -36,3 +36,38 @@ async def md_to_event_structure(
     )
 
     return extracted_event
+
+
+def exclude_client_cache_key(context, parameters) -> str:
+    """Generate string cache key excluding non-serializable client"""
+    cacheable_params = {k: v for k, v in parameters.items() if k != "llm_client"}
+
+    # Create stable string representation
+    param_str = json.dumps(cacheable_params, sort_keys=True)
+
+    # Create hash for shorter key
+    return hashlib.sha256(param_str.encode()).hexdigest()
+
+
+@task(
+    name="md_to_event_structure_batch",
+    retries=2,
+    retry_delay_seconds=30,
+    cache_key_fn=exclude_client_cache_key,
+)
+async def md_to_event_structure_batch(
+    llm_client: instructor.AsyncInstructor, event_md_batch: List[str]
+) -> List[EventDetail]:
+    """
+    Extract structured event data from a batch of markdown content using the
+    Instructor LLM.
+    """
+    llm_tasks = [
+        md_to_event_structure(llm_client, event_md) for event_md in event_md_batch
+    ]
+    batch_results = await asyncio.gather(*llm_tasks, return_exceptions=True)
+    structured_events = [
+        result for result in batch_results if not isinstance(result, Exception)
+    ]
+
+    return structured_events

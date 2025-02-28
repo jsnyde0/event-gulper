@@ -42,12 +42,6 @@ def _get_base_url(url: str) -> str:
     return f"{parsed_url.scheme}://{parsed_url.netloc}"
 
 
-@task(
-    name="fetch_event_urls",
-    description="Fetch all Siegessaeule event URLs for a given date",
-    retries=3,
-    retry_delay_seconds=60,
-)
 async def fetch_event_urls(
     target_date: date, batch_size: int = 10
 ) -> AsyncGenerator[List[str], None]:
