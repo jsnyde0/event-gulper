@@ -1,6 +1,7 @@
 import os
 from typing import List
 
+from prefect import task
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from pipeline.models.events import EventURL
@@ -66,3 +67,20 @@ def get_all_events() -> List[EventURL]:
     with Session(engine) as session:
         statement = select(EventURL)
         return session.exec(statement).all()
+
+
+@task(
+    name="save_event_urls_to_db",
+    description="Save valid event URLs to the database",
+    retries=2,
+    retry_delay_seconds=30,
+)
+def save_event_urls_to_db(valid_urls: List[str]) -> int:
+    """
+    Task to save valid event URLs to the database.
+    Will retry 2 times with 30 second delay if it fails.
+
+    Returns:
+        Number of new events saved
+    """
+    return save_event_urls(valid_urls)
