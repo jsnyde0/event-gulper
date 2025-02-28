@@ -1,7 +1,7 @@
 import pytest
 
-from pipeline.extract.siegessaeule import scrape_event_details_md
-from pipeline.transform.llm import md_to_event_structure
+from pipeline.b_extract.siegessaeule import scrape_event_details_md
+from pipeline.c_transform.llm import md_to_event_structure
 
 
 @pytest.mark.asyncio

@@ -2,10 +2,8 @@ from datetime import date
 
 import pytest
 
-from pipeline.extract.siegessaeule import (
-    fetch_event_urls,
-    scrape_event_details_md,
-)
+from pipeline.a_source.siegessaeule import fetch_event_urls
+from pipeline.b_extract.siegessaeule import scrape_event_details_md
 
 
 @pytest.mark.asyncio

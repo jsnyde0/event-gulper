@@ -1,12 +1,12 @@
-import asyncio
 import re
 from datetime import date
-from typing import AsyncGenerator, Dict, List
+from typing import AsyncIterator, List, Optional
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 from httpx import AsyncClient
-from prefect.tasks import task
+
+from pipeline.a_source.protocols import DataSource
 
 
 async def _get_event_paths(page_url: str) -> List[str]:
@@ -44,7 +44,7 @@ def _get_base_url(url: str) -> str:
 
 async def fetch_event_urls(
     target_date: date, batch_size: int = 10
-) -> AsyncGenerator[List[str], None]:
+) -> AsyncIterator[List[str]]:
     """
     Generate batches of event URLs for a given date.
 
@@ -66,61 +66,32 @@ async def fetch_event_urls(
     # Yield URLs in batches
     for i in range(0, len(all_urls), batch_size):
         url_batch = all_urls[i : i + batch_size]
-        # logfire.info(
-        #     "Yielding batch of {count} URLs ({start} to {end} of {total})",
-        #     count=len(url_batch),
-        #     start=i + 1,
-        #     end=min(i + batch_size, len(all_urls)),
-        #     total=len(all_urls)
-        # )
         yield url_batch
 
 
-async def scrape_event_details_md(
-    url: str, section_selector: str = "main"
-) -> Dict[str, str]:
+class SiegessaeuleSource(DataSource[str]):
     """
-    A generalized scraper that extracts content from a main section of a webpage.
-
-    Args:
-        url: The URL to scrape
-        section_selector: CSS selector to find the main section (default: "main")
-
-    Returns:
-        A string of markdown content
+    Data source for Siegessaeule events website.
+    Yields batches of event URLs for a given date.
     """
-    async with AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
 
-    soup = BeautifulSoup(response.text, "html.parser")
+    def __init__(
+        self, target_date: date, batch_size: int = 10, max_batches: Optional[int] = None
+    ):
+        self.target_date = target_date
+        self.batch_size = batch_size
+        self.max_batches = max_batches
 
-    # Find the main section
-    main_section = soup.select_one(section_selector)
-    if not main_section:
-        return {
-            "error": f"Could not find section matching selector: {section_selector}"
-        }
+    async def fetch_batches(self) -> AsyncIterator[List[str]]:
+        """
+        Fetch batches of event URLs from Siegessaeule for the target date.
 
-    # Extract HTML from the section
-    section_html = str(main_section)
-
-    # Process with markdownify instead of html2text
-    from markdownify import markdownify as md
-
-    markdown = md(section_html, heading_style="ATX", bullets="-")
-
-    return markdown
-
-
-@task(
-    name="scrape_events_details_md",
-    retries=2,
-    retry_delay_seconds=30,
-)
-async def scrape_events_details_md(url_batch: List[str]) -> Dict[str, str]:
-    """
-    Task to fetch event content for a list of URLs in markdown format.
-    """
-    content_tasks = [scrape_event_details_md(url) for url in url_batch]
-    return await asyncio.gather(*content_tasks)
+        Returns:
+            Batches of event URLs
+        """
+        batch_count = 0
+        async for url_batch in fetch_event_urls(self.target_date, self.batch_size):
+            yield url_batch
+            batch_count += 1
+            if self.max_batches is not None and batch_count >= self.max_batches:
+                break
