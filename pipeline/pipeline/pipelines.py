@@ -12,7 +12,7 @@ from prefect import flow
 
 from pipeline.a_source.siegessaeule import SiegessaeuleSource
 from pipeline.b_extract.siegessaeule import SiegessaeuleExtractor
-from pipeline.c_transform.llm import md_to_event_structure_batch
+from pipeline.c_transform.llm import MdToEventTransformer
 from pipeline.models.events import EventDetail
 
 load_dotenv()
@@ -43,6 +43,7 @@ async def scrape_siegessaeule(
     # Create the data source
     source = SiegessaeuleSource(target_date, batch_size, max_batches)
     extractor = SiegessaeuleExtractor(http_client)
+    md_to_event_transformer = MdToEventTransformer(llm_client)
 
     try:
         batch_count = 0
@@ -52,9 +53,7 @@ async def scrape_siegessaeule(
                 events_md = await extractor.extract(url_batch)
 
                 # Transform
-                structured_events = await md_to_event_structure_batch(
-                    llm_client, events_md
-                )
+                structured_events = await md_to_event_transformer.transform(events_md)
                 all_events.extend(structured_events)
 
                 # Log batch results

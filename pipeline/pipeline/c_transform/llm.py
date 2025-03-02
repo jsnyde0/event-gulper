@@ -6,6 +6,7 @@ from typing import List
 import instructor
 from prefect.tasks import task
 
+from pipeline.c_transform.protocols import Transformer
 from pipeline.models.events import EventDetail
 
 
@@ -56,14 +57,14 @@ def exclude_client_cache_key(context, parameters) -> str:
     cache_key_fn=exclude_client_cache_key,
 )
 async def md_to_event_structure_batch(
-    llm_client: instructor.AsyncInstructor, event_md_batch: List[str]
+    llm_client: instructor.AsyncInstructor, events_md_batch: List[str]
 ) -> List[EventDetail]:
     """
     Extract structured event data from a batch of markdown content using the
     Instructor LLM.
     """
     llm_tasks = [
-        md_to_event_structure(llm_client, event_md) for event_md in event_md_batch
+        md_to_event_structure(llm_client, event_md) for event_md in events_md_batch
     ]
     batch_results = await asyncio.gather(*llm_tasks, return_exceptions=True)
     structured_events = [
@@ -71,3 +72,30 @@ async def md_to_event_structure_batch(
     ]
 
     return structured_events
+
+
+class MdToEventTransformer(Transformer[str, EventDetail]):
+    """
+    Transformer that uses an LLM to extract structured event details from markdown.
+    """
+
+    def __init__(self, llm_client: instructor.AsyncInstructor):
+        """
+        Initialize the transformer with an LLM client.
+
+        Args:
+            llm_client: Instructor-enhanced OpenAI client
+        """
+        self.llm_client = llm_client
+
+    async def transform(self, events_md_batch: List[str]) -> List[EventDetail]:
+        """
+        Transform markdown descriptions into structured event details.
+
+        Args:
+            events_md_batch: List of markdown strings describing events
+
+        Returns:
+            List of structured EventDetail objects
+        """
+        return await md_to_event_structure_batch(self.llm_client, events_md_batch)

@@ -16,7 +16,7 @@ RUN cd pipeline && \
     uv pip install --system .
 
 # Final stage
-FROM python:3.12-slim-bookworm
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
