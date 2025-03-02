@@ -1,12 +1,12 @@
 from typing import AsyncIterator, Generic, List, Protocol, TypeVar
 
-T = TypeVar("T")
+SourceOutput = TypeVar("SourceOutput")
 
 
-class DataSource(Protocol, Generic[T]):
+class DataSource(Protocol, Generic[SourceOutput]):
     """Protocol defining a data source that can be fetched in batches"""
 
-    async def fetch_batches(self) -> AsyncIterator[List[T]]:
+    async def fetch_batches(self) -> AsyncIterator[List[SourceOutput]]:
         """
         Yield batches of data from this source.
 

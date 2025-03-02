@@ -1,10 +1,10 @@
 from typing import Generic, List, Protocol, TypeVar
 
-T = TypeVar("T")  # Input type
-U = TypeVar("U")  # Output type
+TransformerInput = TypeVar("TransformerInput")  # Input type
+TransformerOutput = TypeVar("TransformerOutput")  # Output type
 
 
-class Transformer(Protocol, Generic[T, U]):
+class Transformer(Protocol, Generic[TransformerInput, TransformerOutput]):
     """
     Protocol defining a transformer that processes data from one form to another.
 
@@ -13,7 +13,7 @@ class Transformer(Protocol, Generic[T, U]):
     or structural changes.
     """
 
-    async def transform(self, items: List[T]) -> List[U]:
+    async def transform(self, items: List[TransformerInput]) -> List[TransformerOutput]:
         """
         Transform a batch of items from one format to another.
 

@@ -1,7 +1,7 @@
 import os
 import time
 from datetime import date
-from typing import List, Tuple
+from typing import List, TypeVar
 
 import instructor
 import logfire
@@ -10,14 +10,75 @@ from httpx import AsyncClient
 from openai import AsyncOpenAI
 from prefect import flow
 
+from pipeline.a_source.protocols import DataSource
 from pipeline.a_source.siegessaeule import SiegessaeuleSource
+from pipeline.b_extract.protocols import Extractor
 from pipeline.b_extract.siegessaeule import SiegessaeuleExtractor
 from pipeline.c_transform.llm import MdToEventTransformer
+from pipeline.c_transform.protocols import Transformer
 from pipeline.models.events import EventDetail
 
 load_dotenv()
 
 logfire.configure(token=os.getenv("LOGFIRE_WRITE_TOKEN"))
+
+EventUrl = TypeVar("EventUrl")
+
+
+async def run_pipeline(
+    source: DataSource[EventUrl],
+    extractor: Extractor[EventUrl],
+    transformers: List[
+        Transformer[str, EventDetail] | Transformer[EventDetail, EventDetail]
+    ],
+    max_batches: int | None = 2,
+) -> List[EventDetail]:
+    """
+    Process data through a multi-step pipeline.
+
+    Args:
+        source: Data source that yields batches
+        extractor: Extracts structured data from raw batches
+        transformers: List of transformers to apply in sequence
+        batch_size: Number of items per batch
+        max_batches: Optional limit on number of batches to process
+
+    Returns:
+        List of processed items
+    """
+    all_events = []
+
+    batch_count = 0
+    async for url_batch in source.fetch_batches():
+        with logfire.span("process_batch {batch_num}", batch_num=batch_count):
+            # Extract
+            extracted_events = await extractor.extract(url_batch)
+
+            # Transform
+            processed_events = extracted_events
+            for transformer in transformers:
+                processed_events = await transformer.transform(processed_events)
+
+            # Log batch results
+            if processed_events:
+                all_events.extend(processed_events)
+                logfire.info(
+                    "Processed batch {batch_num} with {event_count} events",
+                    batch_num=batch_count,
+                    event_count=len(processed_events),
+                    event_titles=str([event.title for event in processed_events]),
+                )
+            else:
+                logfire.warning(
+                    "Batch {batch_num} yielded no events",
+                    batch_num=batch_count,
+                )
+
+        batch_count += 1
+        if max_batches is not None and batch_count >= max_batches:
+            break
+
+    return all_events
 
 
 @flow(
@@ -28,7 +89,7 @@ async def scrape_siegessaeule(
     target_date: date,
     batch_size: int = 5,
     max_batches: int | None = 2,
-) -> Tuple[List[EventDetail]]:
+) -> List[EventDetail]:
     """
     Main flow that processes events in concurrent batches.
     """
@@ -40,37 +101,14 @@ async def scrape_siegessaeule(
 
     all_events = []
 
-    # Create the data source
-    source = SiegessaeuleSource(target_date, batch_size, max_batches)
-    extractor = SiegessaeuleExtractor(http_client)
-    md_to_event_transformer = MdToEventTransformer(llm_client)
-
     try:
-        batch_count = 0
-        async for url_batch in source.fetch_batches():
-            with logfire.span("process_batch {batch_num}", batch_num=batch_count):
-                # Extract
-                events_md = await extractor.extract(url_batch)
+        source = SiegessaeuleSource(target_date, batch_size, max_batches)
+        extractor = SiegessaeuleExtractor(http_client)
+        md_to_event_transformer = MdToEventTransformer(llm_client)
 
-                # Transform
-                structured_events = await md_to_event_transformer.transform(events_md)
-                all_events.extend(structured_events)
-
-                # Log batch results
-                if structured_events:
-                    logfire.info(
-                        "Processed batch {batch_num} with {event_count} events",
-                        batch_num=batch_count,
-                        event_count=len(structured_events),
-                        event_titles=str([event.title for event in structured_events]),
-                    )
-                else:
-                    logfire.warning(
-                        "Batch {batch_num} yielded no events",
-                        batch_num=batch_count,
-                    )
-
-            batch_count += 1
+        all_events = await run_pipeline(
+            source, extractor, [md_to_event_transformer], max_batches
+        )
 
     finally:
         await http_client.aclose()

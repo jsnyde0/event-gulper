@@ -1,17 +1,17 @@
 from typing import Generic, List, Protocol, TypeVar
 
-T = TypeVar("T")  # Input type
+ExtractorInput = TypeVar("ExtractorInput")  # Raw data from source
 
 
-class Extractor(Protocol, Generic[T]):
+class Extractor(Protocol, Generic[ExtractorInput]):
     """
     Protocol defining an extractor that converts raw data to markdown format.
 
-    An extractor takes a batch of raw data items (T) and converts them to
+    An extractor takes a batch of raw data items (ExtractorInput) and converts them to
     markdown strings representing structured data.
     """
 
-    async def extract(self, raw_batch: List[T]) -> List[str]:
+    async def extract(self, raw_batch: List[ExtractorInput]) -> List[str]:
         """
         Extract structured markdown from a batch of raw inputs.
 
