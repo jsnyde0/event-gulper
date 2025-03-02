@@ -1,7 +1,7 @@
 import os
 import time
 from datetime import date
-from typing import List, TypeVar
+from typing import List
 
 import instructor
 import logfire
@@ -22,15 +22,11 @@ load_dotenv()
 
 logfire.configure(token=os.getenv("LOGFIRE_WRITE_TOKEN"))
 
-EventUrl = TypeVar("EventUrl")
-
 
 async def run_pipeline(
-    source: DataSource[EventUrl],
-    extractor: Extractor[EventUrl],
-    transformers: List[
-        Transformer[str, EventDetail] | Transformer[EventDetail, EventDetail]
-    ],
+    source: DataSource,
+    extractor: Extractor,
+    transformers: List[Transformer],
     max_batches: int | None = 2,
 ) -> List[EventDetail]:
     """
@@ -40,39 +36,23 @@ async def run_pipeline(
         source: Data source that yields batches
         extractor: Extracts structured data from raw batches
         transformers: List of transformers to apply in sequence
-        batch_size: Number of items per batch
         max_batches: Optional limit on number of batches to process
 
     Returns:
         List of processed items
     """
     all_events = []
-
     batch_count = 0
-    async for url_batch in source.fetch_batches():
-        with logfire.span("process_batch {batch_num}", batch_num=batch_count):
-            # Extract
-            extracted_events = await extractor.extract(url_batch)
 
-            # Transform
-            processed_events = extracted_events
-            for transformer in transformers:
-                processed_events = await transformer.transform(processed_events)
+    async for batch in source.fetch_batches():
+        # Extract and transform
+        data = await extractor.extract(batch)
+        for transformer in transformers:
+            data = await transformer.transform(data)
 
-            # Log batch results
-            if processed_events:
-                all_events.extend(processed_events)
-                logfire.info(
-                    "Processed batch {batch_num} with {event_count} events",
-                    batch_num=batch_count,
-                    event_count=len(processed_events),
-                    event_titles=str([event.title for event in processed_events]),
-                )
-            else:
-                logfire.warning(
-                    "Batch {batch_num} yielded no events",
-                    batch_num=batch_count,
-                )
+        # Add results and log
+        all_events.extend(data)
+        logfire.info(f"Processed batch {batch_count} with {len(data)} events")
 
         batch_count += 1
         if max_batches is not None and batch_count >= max_batches:
