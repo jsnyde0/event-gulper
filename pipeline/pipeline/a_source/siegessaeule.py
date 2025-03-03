@@ -9,20 +9,19 @@ from httpx import AsyncClient
 from pipeline.a_source.protocols import DataSource
 
 
-async def _get_event_paths(page_url: str) -> List[str]:
+async def _get_event_paths(http_client: AsyncClient, page_url: str) -> List[str]:
     """Extract all href paths from content-block elements."""
-    async with AsyncClient() as client:
-        response = await client.get(page_url)
-        response.raise_for_status()
+    response = await http_client.get(page_url)
+    response.raise_for_status()
 
-        soup = BeautifulSoup(response.text, "html.parser")
-        content_blocks = soup.find_all("div", class_="content-block")
+    soup = BeautifulSoup(response.text, "html.parser")
+    content_blocks = soup.find_all("div", class_="content-block")
 
-        return [
-            link["href"]
-            for block in content_blocks
-            if (link := block.find("a")) and link.get("href")
-        ]
+    return [
+        link["href"]
+        for block in content_blocks
+        if (link := block.find("a")) and link.get("href")
+    ]
 
 
 def _filter_event_paths(paths: List[str]) -> List[str]:
@@ -43,7 +42,10 @@ def _get_base_url(url: str) -> str:
 
 
 async def fetch_event_urls(
-    target_date: date, batch_size: int = 10
+    http_client: AsyncClient,
+    target_date,
+    batch_size: int = 5,
+    max_batches: int | None = None,
 ) -> AsyncIterator[List[str]]:
     """
     Generate batches of event URLs for a given date.
@@ -55,10 +57,18 @@ async def fetch_event_urls(
     Yields:
         Batches of event URLs
     """
+    # Convert int to date if needed
+    if isinstance(target_date, int):
+        # Convert from timestamp if it's a Unix timestamp
+        target_date = date.fromtimestamp(target_date)
+    elif isinstance(target_date, str):
+        # Parse from string if it's a string
+        target_date = date.fromisoformat(target_date)
+
     date_str = target_date.strftime("%Y-%m-%d")
     page_url = f"https://www.siegessaeule.de/en/events/?date={date_str}"
 
-    paths = await _get_event_paths(page_url)
+    paths = await _get_event_paths(http_client, page_url)
     event_paths = _filter_event_paths(paths)
     base_url = _get_base_url(page_url)
     all_urls = _construct_event_urls(base_url, event_paths)
@@ -76,8 +86,13 @@ class SiegessaeuleSource(DataSource[str]):
     """
 
     def __init__(
-        self, target_date: date, batch_size: int = 10, max_batches: Optional[int] = None
+        self,
+        http_client: AsyncClient,
+        target_date: date,
+        batch_size: int = 10,
+        max_batches: Optional[int] = None,
     ):
+        self.http_client = http_client
         self.target_date = target_date
         self.batch_size = batch_size
         self.max_batches = max_batches
@@ -90,7 +105,9 @@ class SiegessaeuleSource(DataSource[str]):
             Batches of event URLs
         """
         batch_count = 0
-        async for url_batch in fetch_event_urls(self.target_date, self.batch_size):
+        async for url_batch in fetch_event_urls(
+            self.http_client, self.target_date, self.batch_size
+        ):
             yield url_batch
             batch_count += 1
             if self.max_batches is not None and batch_count >= self.max_batches:

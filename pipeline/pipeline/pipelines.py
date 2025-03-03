@@ -1,14 +1,11 @@
 from typing import List
 
 import logfire
-from dotenv import load_dotenv
 
 from pipeline.a_source.protocols import DataSource
 from pipeline.b_extract.protocols import Extractor
 from pipeline.c_transform.protocols import Transformer
 from pipeline.models.events import EventDetail
-
-load_dotenv()
 
 
 class Pipeline:

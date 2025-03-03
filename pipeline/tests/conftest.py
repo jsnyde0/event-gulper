@@ -5,6 +5,7 @@ import instructor
 import logfire
 import pytest
 from dotenv import load_dotenv
+from httpx import AsyncClient
 from openai import AsyncOpenAI
 
 # Disable logfire for all tests
@@ -37,3 +38,10 @@ async def llm_client():
 
     llm_client = instructor.from_openai(AsyncOpenAI())
     return llm_client
+
+
+@pytest.fixture
+async def http_client():
+    """Create an AsyncClient for use in tests."""
+    async with AsyncClient() as client:
+        yield client

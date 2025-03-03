@@ -41,7 +41,12 @@ async def scrape_siegessaeule(
     all_events = []
 
     try:
-        source = SiegessaeuleSource(target_date, batch_size, max_batches)
+        source = SiegessaeuleSource(
+            http_client,
+            target_date,
+            batch_size,
+            max_batches,
+        )
         extractor = SiegessaeuleExtractor(http_client)
         md_to_event_transformer = MdToEventTransformer(llm_client)
 
