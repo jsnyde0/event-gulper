@@ -1,4 +1,4 @@
-from pipeline.pipelines import scrape_siegessaeule
+from pipeline.e_flows.siegessaeule import scrape_siegessaeule
 
 if __name__ == "__main__":
     # This serve call registers the deployment and starts a long-running process
