@@ -19,5 +19,4 @@ dependencies = [
     "pytest-asyncio>=0.25.3",
     "pytest-httpx>=0.35.0",
     "sqlalchemy>=2.0.38",
-    "sqlmodel>=0.0.22",
 ]

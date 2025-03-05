@@ -13,6 +13,7 @@ from prefect import flow
 from pipeline.a_source.siegessaeule import SiegessaeuleSource
 from pipeline.b_extract.siegessaeule import SiegessaeuleExtractor
 from pipeline.c_transform.llm import MdToEventTransformer
+from pipeline.d_load.database import init_db
 from pipeline.models.events import EventDetail
 from pipeline.pipelines import Pipeline
 
@@ -37,6 +38,7 @@ async def scrape_siegessaeule(
     # Initialize clients
     http_client = AsyncClient()
     llm_client = instructor.from_openai(AsyncOpenAI())
+    init_db()
 
     all_events = []
 
@@ -50,7 +52,12 @@ async def scrape_siegessaeule(
         extractor = SiegessaeuleExtractor(http_client)
         md_to_event_transformer = MdToEventTransformer(llm_client)
 
-        pipeline = Pipeline(source, extractor, [md_to_event_transformer], max_batches)
+        pipeline = Pipeline(
+            source,
+            extractor,
+            [md_to_event_transformer],
+            max_batches,
+        )
 
         all_events = await pipeline.run_pipeline()
 

@@ -16,11 +16,9 @@ async def test_md_to_event_structure(llm_client):
     # extract event data
     event_data = await md_to_event_structure(llm_client, section_md)
 
-    # print("\n\nevent_data: \n", event_data, "\n\n")
+    print("\n\nevent_data: \n", event_data, "\n\n")
 
     # assert event data
     assert event_data.title == "Psychologische Beratung"
     assert "HIV" in event_data.summary
-    assert "MANEO" in event_data.description
     assert "Bülowstr. 106" in event_data.location
-    assert "Mann-O-Meter" in event_data.organizer

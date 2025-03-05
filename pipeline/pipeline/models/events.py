@@ -2,24 +2,29 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel, HttpUrl
-from sqlmodel import Field, SQLModel
+from pydantic import BaseModel, Field, HttpUrl
+from sqlalchemy import Column, DateTime, Float, Integer, String, Text
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
 
 
 # For database storage
-class EventURL(SQLModel, table=True):
-    """SQLModel for database storage of events."""
+class EventURL(Base):
+    """SQLAlchemy model for database storage of event URLs."""
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    url: str = Field(index=True, unique=True)  # Use str instead of HttpUrl
-    source: str = Field(default="siegessaeule")
-    scraped_date: datetime = Field(default_factory=datetime.utcnow)
+    __tablename__ = "event_urls"
+
+    id = Column(Integer, primary_key=True)
+    url = Column(String, index=True, unique=True)
+    source = Column(String, default="siegessaeule")
+    scraped_date = Column(DateTime, default=datetime.utcnow)
 
 
 class EventDetail(BaseModel):
     title: str = Field(..., description="The title of the event")
     summary: str = Field(..., description="A short summary of the event")
-    # detail_url: HttpUrl = Field(..., description="The URL of the event detail page")
+    detail_url: HttpUrl = Field(..., description="The URL of the event detail page")
     description: Optional[str] = Field(
         None, description="The full description of the event"
     )
@@ -40,3 +45,49 @@ class EventDetail(BaseModel):
     original_tags: Optional[list[str]] = Field(
         [], description="The original tags of the event found on the detail page"
     )
+
+
+class EventDetailDB(Base):
+    """SQLAlchemy model for database storage of event details."""
+
+    __tablename__ = "event_details"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String, index=True)
+    summary = Column(String)
+    description = Column(Text, nullable=True)
+    location = Column(String, nullable=True)
+    start_time = Column(DateTime, index=True, nullable=True)
+    end_time = Column(DateTime, nullable=True)
+    organizer = Column(String, nullable=True)
+    source_url = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    attendees = Column(Integer, nullable=True)
+    price = Column(Float, nullable=True)
+    original_tags = Column(String, nullable=True)  # Store as comma-separated string
+    source = Column(String, default="siegessaeule")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @classmethod
+    def from_event_detail(
+        cls, event: EventDetail, source: str = "siegessaeule"
+    ) -> "EventDetailDB":
+        """Convert EventDetail to EventDetailDB."""
+        return cls(
+            title=event.title,
+            summary=event.summary,
+            description=event.description,
+            location=event.location,
+            start_time=event.start_time,
+            end_time=event.end_time,
+            organizer=event.organizer,
+            source_url=str(event.source_url) if event.source_url else None,
+            image_url=str(event.image_url) if event.image_url else None,
+            attendees=event.attendees,
+            price=float(event.price) if event.price else None,
+            original_tags=",".join(event.original_tags)
+            if event.original_tags
+            else None,
+            source=source,
+        )
