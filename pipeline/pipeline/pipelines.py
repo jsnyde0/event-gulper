@@ -4,8 +4,8 @@ import logfire
 
 from pipeline.a_source.protocols import DataSource
 from pipeline.b_extract.protocols import Extractor
+from pipeline.c_transform.database import save_event_details
 from pipeline.c_transform.protocols import Transformer
-from pipeline.d_load.database import save_event_details
 from pipeline.models.events import EventDetail
 
 
@@ -40,7 +40,7 @@ class Pipeline:
             for transformer in self.transformers:
                 data = await transformer.transform(data)
 
-            saved_count = save_event_details(data)
+            saved_count = await save_event_details(data)
             logfire.info(f"Saved {saved_count} new events to database")
 
             # Add results and log

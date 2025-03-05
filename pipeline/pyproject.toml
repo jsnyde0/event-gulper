@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "asyncpg>=0.30.0",
     "beautifulsoup4>=4.13.3",
     "debugpy>=1.8.12",
     "httpx>=0.28.1",

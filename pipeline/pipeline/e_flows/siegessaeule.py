@@ -12,8 +12,8 @@ from prefect import flow
 
 from pipeline.a_source.siegessaeule import SiegessaeuleSource
 from pipeline.b_extract.siegessaeule import SiegessaeuleExtractor
+from pipeline.c_transform.database import init_db
 from pipeline.c_transform.llm import MdToEventTransformer
-from pipeline.d_load.database import init_db
 from pipeline.models.events import EventDetail
 from pipeline.pipelines import Pipeline
 
