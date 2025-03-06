@@ -24,12 +24,22 @@ logfire.configure(token=os.getenv("LOGFIRE_WRITE_TOKEN"))
     description="Scrape Siegessaeule events for a specific date",
 )
 async def scrape_siegessaeule(
-    target_date: date,
+    start_date: date,
+    end_date: date,
     batch_size: int = 5,
     max_batches: int | None = 2,
 ) -> List[EventDetail]:
     """
     Main flow that processes events in concurrent batches.
+
+    Args:
+        start_date: First date to scrape events for (inclusive)
+        end_date: Last date to scrape events for (inclusive)
+        batch_size: Number of events to process in parallel
+        max_batches: Maximum number of batches to process (None for unlimited)
+
+    Returns:
+        List of scraped and processed events
     """
     # Initialize clients
     http_client = AsyncClient()
@@ -41,7 +51,8 @@ async def scrape_siegessaeule(
     try:
         source = SiegessaeuleSource(
             http_client,
-            target_date,
+            start_date,
+            end_date,
             batch_size,
             max_batches,
         )
