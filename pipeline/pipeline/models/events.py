@@ -74,13 +74,23 @@ class EventDetailDB(Base):
         cls, event: EventDetail, source: str = "siegessaeule"
     ) -> "EventDetailDB":
         """Convert EventDetail to EventDetailDB."""
+        # Convert timezone-aware datetimes to naive UTC
+        start_time = (
+            event.start_time.astimezone().replace(tzinfo=None)
+            if event.start_time
+            else None
+        )
+        end_time = (
+            event.end_time.astimezone().replace(tzinfo=None) if event.end_time else None
+        )
+
         return cls(
             title=event.title,
             summary=event.summary,
             description=event.description,
             location=event.location,
-            start_time=event.start_time,
-            end_time=event.end_time,
+            start_time=start_time,  # Now timezone-naive
+            end_time=end_time,  # Now timezone-naive
             organizer=event.organizer,
             source_url=str(event.source_url) if event.source_url else None,
             image_url=str(event.image_url) if event.image_url else None,

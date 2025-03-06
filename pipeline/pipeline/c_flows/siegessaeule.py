@@ -10,7 +10,7 @@ from openai import AsyncOpenAI
 from prefect import flow
 
 from pipeline.a_source.siegessaeule import SiegessaeuleSource
-from pipeline.b_transform.database import EventDetailSaver, init_db
+from pipeline.b_transform.database import EventDetailSaver, EventURLSaver, init_db
 from pipeline.b_transform.llm import MdToEventTransformer
 from pipeline.b_transform.scrape import ScrapeURLAsMarkdown
 from pipeline.models.events import EventDetail
@@ -46,11 +46,13 @@ async def scrape_siegessaeule(
             batch_size,
             max_batches,
         )
+        url_saver = EventURLSaver(return_only_saved=True)
         url_to_markdown_scraper = ScrapeURLAsMarkdown(http_client)
         md_to_event_transformer = MdToEventTransformer(llm_client)
         event_saver = EventDetailSaver(return_only_saved=True)
 
         transform_steps = [
+            url_saver,
             url_to_markdown_scraper,
             md_to_event_transformer,
             event_saver,
