@@ -12,7 +12,7 @@ from prefect import flow
 
 from pipeline.a_source.siegessaeule import SiegessaeuleSource
 from pipeline.b_extract.siegessaeule import SiegessaeuleExtractor
-from pipeline.c_transform.database import init_db
+from pipeline.c_transform.database import EventDetailSaver, init_db
 from pipeline.c_transform.llm import MdToEventTransformer
 from pipeline.models.events import EventDetail
 from pipeline.pipelines import Pipeline
@@ -51,11 +51,12 @@ async def scrape_siegessaeule(
         )
         extractor = SiegessaeuleExtractor(http_client)
         md_to_event_transformer = MdToEventTransformer(llm_client)
+        event_saver = EventDetailSaver(return_only_saved=True)
 
         pipeline = Pipeline(
             source,
             extractor,
-            [md_to_event_transformer],
+            [md_to_event_transformer, event_saver],
             max_batches,
         )
 
