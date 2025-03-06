@@ -24,3 +24,7 @@ class Transformer(Protocol, Generic[TransformerInput, TransformerOutput]):
             List of transformed output items
         """
         ...
+
+    def __str__(self) -> str:
+        """Return a human-readable description of the transformer."""
+        return self.__class__.__name__

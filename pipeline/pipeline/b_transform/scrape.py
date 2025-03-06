@@ -111,3 +111,6 @@ class ScrapeURLAsMarkdown(Transformer[str, str]):
             urls,
             self.section_selector,
         )
+
+    def __str__(self) -> str:
+        return "ScrapeURLAsMarkdown"

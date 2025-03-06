@@ -91,6 +91,9 @@ class EventURLSaver(Transformer[str, str]):
 
         return saved_urls if self.return_only_saved else urls
 
+    def __str__(self) -> str:
+        return "EventURLSaver"
+
 
 class EventDetailSaver(Transformer[EventDetail, EventDetail]):
     """
@@ -167,3 +170,6 @@ class EventDetailSaver(Transformer[EventDetail, EventDetail]):
             await session.commit()
 
         return saved_events if self.return_only_saved else events
+
+    def __str__(self) -> str:
+        return "EventDetailSaver"

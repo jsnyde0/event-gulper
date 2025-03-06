@@ -99,3 +99,6 @@ class MdToEventTransformer(Transformer[str, EventDetail]):
             List of structured EventDetail objects
         """
         return await md_to_event_structure_batch(self.llm_client, events_md_batch)
+
+    def __str__(self) -> str:
+        return "MdToEventTransformer"
