@@ -47,6 +47,23 @@ class Pipeline:
         self.transformers.append(transformer)
         return self
 
+    async def _transform_batch(
+        self,
+        source_items: List[Any],
+        batch_num: int,
+    ) -> List[Any]:
+        """Process a single batch of items through the pipeline."""
+        with logfire.span(
+            f"Processing batch {batch_num} with {len(source_items)} items",
+            batch_size=len(source_items),
+        ):
+            # Transform the source items
+            transformed_items = source_items
+            for transformer in self.transformers:
+                transformed_items = await transformer.transform(transformed_items)
+
+            return transformed_items
+
     async def run(self) -> List[EventDetail]:
         """
         Run the pipeline.
@@ -58,10 +75,7 @@ class Pipeline:
         batch_num = 0
 
         async for source_items in self.source.fetch_batches():
-            # Transform the source items
-            transformed_items = source_items
-            for transformer in self.transformers:
-                transformed_items = await transformer.transform(transformed_items)
+            transformed_items = await self._transform_batch(source_items, batch_num)
 
             # Add the transformed items to the results
             all_results.extend(transformed_items)
