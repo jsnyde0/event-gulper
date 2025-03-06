@@ -11,9 +11,9 @@ from openai import AsyncOpenAI
 from prefect import flow
 
 from pipeline.a_source.siegessaeule import SiegessaeuleSource
-from pipeline.c_transform.database import EventDetailSaver, init_db
-from pipeline.c_transform.llm import MdToEventTransformer
-from pipeline.c_transform.scrape import ScrapeURLAsMarkdown
+from pipeline.b_transform.database import EventDetailSaver, init_db
+from pipeline.b_transform.llm import MdToEventTransformer
+from pipeline.b_transform.scrape import ScrapeURLAsMarkdown
 from pipeline.models.events import EventDetail
 from pipeline.pipelines import Pipeline
 
@@ -38,7 +38,7 @@ async def scrape_siegessaeule(
     # Initialize clients
     http_client = AsyncClient()
     llm_client = instructor.from_openai(AsyncOpenAI())
-    init_db()
+    await init_db()
 
     all_events = []
 

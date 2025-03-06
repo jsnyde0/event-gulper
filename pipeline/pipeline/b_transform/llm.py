@@ -6,7 +6,7 @@ from typing import List
 import instructor
 from prefect.tasks import task
 
-from pipeline.c_transform.protocols import Transformer
+from pipeline.b_transform.protocols import Transformer
 from pipeline.models.events import EventDetail
 
 

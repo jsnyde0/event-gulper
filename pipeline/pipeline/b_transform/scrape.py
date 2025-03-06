@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from markdownify import markdownify
 from prefect.tasks import task
 
-from pipeline.c_transform.protocols import Transformer
+from pipeline.b_transform.protocols import Transformer
 
 
 def _exclude_client_cache_key(context, parameters) -> str:

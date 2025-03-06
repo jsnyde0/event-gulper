@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from pipeline.c_transform.protocols import Transformer
+from pipeline.b_transform.protocols import Transformer
 from pipeline.models.events import Base, EventDetail, EventDetailDB, EventURL
 
 # Get database connection string from environment variables

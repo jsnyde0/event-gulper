@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from httpx import AsyncClient
 from openai import AsyncOpenAI
 
-from pipeline.c_transform.scrape import ScrapeURLAsMarkdown
+from pipeline.b_transform.scrape import ScrapeURLAsMarkdown
 
 # Disable logfire for all tests
 logfire.configure(metrics=False)
