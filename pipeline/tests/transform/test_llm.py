@@ -1,17 +1,17 @@
 import pytest
 
-from pipeline.b_extract.siegessaeule import scrape_event_details_md
 from pipeline.c_transform.llm import md_to_event_structure
 
 
 @pytest.mark.asyncio
 @pytest.mark.llm
-async def test_md_to_event_structure(llm_client):
+async def test_md_to_event_structure(llm_client, url_to_md_scraper):
     # Use a specific event URL for testing
     event_url = "https://www.siegessaeule.de/en/events/mix/psychologische-beratung/2025-02-20/17:00/"
 
     # scrape content
-    section_md = await scrape_event_details_md(event_url)
+    markdown_results = await url_to_md_scraper.transform([event_url])
+    section_md = markdown_results[0]
 
     # extract event data
     event_data = await md_to_event_structure(llm_client, section_md)

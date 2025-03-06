@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from httpx import AsyncClient
 from openai import AsyncOpenAI
 
+from pipeline.c_transform.scrape import ScrapeURLAsMarkdown
+
 # Disable logfire for all tests
 logfire.configure(metrics=False)
 
@@ -45,3 +47,9 @@ async def http_client():
     """Create an AsyncClient for use in tests."""
     async with AsyncClient() as client:
         yield client
+
+
+@pytest.fixture
+def url_to_md_scraper(http_client):
+    """Create a ScrapeURLAsMarkdown transformer for tests."""
+    return ScrapeURLAsMarkdown(http_client)

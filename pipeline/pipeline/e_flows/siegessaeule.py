@@ -11,9 +11,9 @@ from openai import AsyncOpenAI
 from prefect import flow
 
 from pipeline.a_source.siegessaeule import SiegessaeuleSource
-from pipeline.b_extract.siegessaeule import SiegessaeuleExtractor
 from pipeline.c_transform.database import EventDetailSaver, init_db
 from pipeline.c_transform.llm import MdToEventTransformer
+from pipeline.c_transform.scrape import ScrapeURLAsMarkdown
 from pipeline.models.events import EventDetail
 from pipeline.pipelines import Pipeline
 
@@ -49,18 +49,23 @@ async def scrape_siegessaeule(
             batch_size,
             max_batches,
         )
-        extractor = SiegessaeuleExtractor(http_client)
+        url_to_markdown_scraper = ScrapeURLAsMarkdown(http_client)
         md_to_event_transformer = MdToEventTransformer(llm_client)
         event_saver = EventDetailSaver(return_only_saved=True)
 
+        transform_steps = [
+            url_to_markdown_scraper,
+            md_to_event_transformer,
+            event_saver,
+        ]
+
         pipeline = Pipeline(
             source,
-            extractor,
-            [md_to_event_transformer, event_saver],
+            transform_steps,
             max_batches,
         )
 
-        all_events = await pipeline.run_pipeline()
+        all_events = await pipeline.run()
 
     finally:
         await http_client.aclose()
