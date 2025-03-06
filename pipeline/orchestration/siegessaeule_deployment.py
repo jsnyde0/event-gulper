@@ -1,4 +1,4 @@
-from pipeline.c_flows.siegessaeule import scrape_siegessaeule
+from orchestration.siegessaeule_flow import scrape_siegessaeule
 
 if __name__ == "__main__":
     # This serve call registers the deployment and starts a long-running process

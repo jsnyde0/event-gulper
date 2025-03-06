@@ -4,11 +4,10 @@ from pathlib import Path
 import instructor
 import logfire
 import pytest
+from core.transforms.scrape import ScrapeURLAsMarkdown
 from dotenv import load_dotenv
 from httpx import AsyncClient
 from openai import AsyncOpenAI
-
-from pipeline.b_transform.scrape import ScrapeURLAsMarkdown
 
 # Disable logfire for all tests
 logfire.configure(metrics=False)

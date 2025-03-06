@@ -1,6 +1,5 @@
 import pytest
-
-from pipeline.b_transform.llm import md_to_event_structure
+from core.transforms.llm import md_to_event_structure
 
 
 @pytest.mark.asyncio

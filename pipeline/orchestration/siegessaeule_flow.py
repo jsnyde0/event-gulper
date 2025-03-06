@@ -4,17 +4,16 @@ from typing import List
 
 import instructor
 import logfire
+from core.models.events import EventDetail
+from core.pipelines import Pipeline
+from core.sources.siegessaeule import SiegessaeuleSource
+from core.transforms.database import EventDetailSaver, EventURLSaver, init_db
+from core.transforms.llm import MdToEventTransformer
+from core.transforms.scrape import ScrapeURLAsMarkdown
 from dotenv import load_dotenv
 from httpx import AsyncClient
 from openai import AsyncOpenAI
 from prefect import flow
-
-from pipeline.a_source.siegessaeule import SiegessaeuleSource
-from pipeline.b_transform.database import EventDetailSaver, EventURLSaver, init_db
-from pipeline.b_transform.llm import MdToEventTransformer
-from pipeline.b_transform.scrape import ScrapeURLAsMarkdown
-from pipeline.models.events import EventDetail
-from pipeline.pipelines import Pipeline
 
 load_dotenv()
 logfire.configure(token=os.getenv("LOGFIRE_WRITE_TOKEN"))

@@ -6,8 +6,8 @@ from typing import List
 import instructor
 from prefect.tasks import task
 
-from pipeline.b_transform.protocols import Transformer
-from pipeline.models.events import EventDetail
+from core.models.events import EventDetail
+from core.transforms.protocols import Transformer
 
 
 async def md_to_event_structure(

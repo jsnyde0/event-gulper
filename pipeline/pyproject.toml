@@ -21,3 +21,8 @@ dependencies = [
     "pytest-httpx>=0.35.0",
     "sqlalchemy>=2.0.38",
 ]
+
+[tool.setuptools.packages.find]
+# Explicitly tell setuptools where to find the packages
+where = ["."]  # Look in the current directory
+include = ["pipeline*"]  # Include pipeline and all its subpackages

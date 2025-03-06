@@ -1,8 +1,7 @@
 from datetime import date
 
 import pytest
-
-from pipeline.a_source.siegessaeule import fetch_event_urls
+from core.sources.siegessaeule import fetch_event_urls
 
 
 @pytest.mark.asyncio

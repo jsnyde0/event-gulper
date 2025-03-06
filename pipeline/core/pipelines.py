@@ -2,9 +2,9 @@ from typing import Any, List
 
 import logfire
 
-from pipeline.a_source.protocols import DataSource
-from pipeline.b_transform.protocols import Transformer
-from pipeline.models.events import EventDetail
+from core.models.events import EventDetail
+from core.sources.protocols import DataSource
+from core.transforms.protocols import Transformer
 
 
 def get_data_type(items: List[Any]) -> str:
@@ -31,7 +31,7 @@ class Pipeline:
         max_batches: int | None = 2,
     ):
         """
-        Initialize the pipeline.
+        Initialize the core.
 
         Args:
             source: The data source that provides batches of items
@@ -52,7 +52,7 @@ class Pipeline:
         source_items: List[Any],
         batch_num: int,
     ) -> List[Any]:
-        """Process a single batch of items through the pipeline."""
+        """Process a single batch of items through the core."""
         with logfire.span(
             f"Processing batch {batch_num} with {len(source_items)} items",
             batch_size=len(source_items),
@@ -76,7 +76,7 @@ class Pipeline:
 
     async def run(self) -> List[EventDetail]:
         """
-        Run the pipeline.
+        Run the core.
 
         Returns:
             List of processed events

@@ -42,4 +42,4 @@ ENV PYTHONPATH=/app/pipeline
 EXPOSE 4200
 
 # Run the Prefect deployment serve script
-CMD ["python", "-m", "pipeline.d_runners.scrape_siegessaeule"]
+CMD ["python", "-m", "orchestration.siegessaeule_deployment"]

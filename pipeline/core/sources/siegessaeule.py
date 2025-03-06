@@ -4,9 +4,8 @@ from typing import AsyncIterator, List, Optional
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
+from core.sources.protocols import DataSource
 from httpx import AsyncClient
-
-from pipeline.a_source.protocols import DataSource
 
 
 async def _get_event_paths(http_client: AsyncClient, page_url: str) -> List[str]:

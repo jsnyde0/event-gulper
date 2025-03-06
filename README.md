@@ -25,7 +25,7 @@ The Prefect UI will be available at [http://127.0.0.1:4200](http://127.0.0.1:420
 2. Register your scraper deployment by running:
 
 ```bash
-uv run -m pipeline.serve_scraper
+uv run -m core.serve_scraper
 ```
 
 This command uses the `serve()` method (in `serve_scraper.py`) to register the deployment named `siegessaeule-scraper-deployment` without an automatic interval. The flow will only run when you trigger it manually from the Prefect dashboard (or via an API call).

@@ -1,6 +1,5 @@
 import pytest
-
-from pipeline.b_transform.scrape import ScrapeURLAsMarkdown
+from core.transforms.scrape import ScrapeURLAsMarkdown
 
 
 @pytest.mark.asyncio
