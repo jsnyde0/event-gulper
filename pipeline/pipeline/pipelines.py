@@ -1,10 +1,17 @@
-from typing import List
+from typing import Any, List
 
 import logfire
 
 from pipeline.a_source.protocols import DataSource
 from pipeline.b_transform.protocols import Transformer
 from pipeline.models.events import EventDetail
+
+
+def get_data_type(items: List[Any]) -> str:
+    if items:
+        return type(items[0]).__name__
+    else:
+        return None
 
 
 class Pipeline:
@@ -48,24 +55,25 @@ class Pipeline:
             List of processed events
         """
         all_results = []
-        batch_count = 0
+        batch_num = 0
 
-        async for source_batch in self.source.fetch_batches():
-            transformed_batch = source_batch
+        async for source_items in self.source.fetch_batches():
+            # Transform the source items
+            transformed_items = source_items
             for transformer in self.transformers:
-                transformed_batch = await transformer.transform(transformed_batch)
+                transformed_items = await transformer.transform(transformed_items)
 
-            # Add results and log
-            all_results.extend(transformed_batch)
-            logfire.info(
-                f"Processed {len(transformed_batch)} events of batch {batch_count}",
-                event_titles=[
-                    e.title for e in transformed_batch if hasattr(e, "title")
-                ],
-            )
+            # Add the transformed items to the results
+            all_results.extend(transformed_items)
 
-            batch_count += 1
-            if self.max_batches is not None and batch_count >= self.max_batches:
+            batch_num += 1
+            if self.max_batches is not None and batch_num >= self.max_batches:
                 break
+
+        num_new_items = len(all_results)
+        logfire.info(
+            "Pipeline completed with {num_new_items} new items",
+            num_new_items=num_new_items,
+        )
 
         return all_results

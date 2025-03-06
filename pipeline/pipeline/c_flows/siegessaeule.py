@@ -1,5 +1,4 @@
 import os
-import time
 from datetime import date
 from typing import List
 
@@ -33,8 +32,6 @@ async def scrape_siegessaeule(
     """
     Main flow that processes events in concurrent batches.
     """
-    flow_start = time.time()
-
     # Initialize clients
     http_client = AsyncClient()
     llm_client = instructor.from_openai(AsyncOpenAI())
@@ -69,12 +66,5 @@ async def scrape_siegessaeule(
 
     finally:
         await http_client.aclose()
-
-    flow_end = time.time()
-    logfire.info(
-        "Total flow took {duration:.2f}s, processed {n_events} events",
-        duration=flow_end - flow_start,
-        n_events=len(all_events),
-    )
 
     return all_events
