@@ -60,7 +60,17 @@ class Pipeline:
             # Transform the source items
             transformed_items = source_items
             for transformer in self.transformers:
+                num_input_items = len(transformed_items)
                 transformed_items = await transformer.transform(transformed_items)
+
+                num_output_items = len(transformed_items)
+                logfire.info(
+                    f"{str(transformer)}: {num_input_items} input items -> \
+                    {num_output_items} output items",
+                    transformer=str(transformer),
+                    num_input_items=num_input_items,
+                    num_output_items=num_output_items,
+                )
 
             return transformed_items
 
