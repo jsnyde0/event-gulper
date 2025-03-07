@@ -533,7 +533,17 @@ source = { virtual = "api" }
 [[package]]
 name = "event-gulper-models"
 version = "0.1.0"
-source = { virtual = "models" }
+source = { editable = "models" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "sqlalchemy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pydantic", specifier = ">=2.10.6" },
+    { name = "sqlalchemy", specifier = ">=2.0.38" },
+]
 
 [[package]]
 name = "exceptiongroup"
