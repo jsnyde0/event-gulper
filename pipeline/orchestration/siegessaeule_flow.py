@@ -4,13 +4,13 @@ from typing import List
 
 import instructor
 import logfire
-from core.models.events import EventDetail
 from core.pipelines import Pipeline
 from core.sources.siegessaeule import SiegessaeuleSource
 from core.transforms.database import EventDetailSaver, EventURLSaver, init_db
 from core.transforms.llm import MdToEventTransformer
 from core.transforms.scrape import ScrapeURLAsMarkdown
 from dotenv import load_dotenv
+from event_gulper_models import EventDetail
 from httpx import AsyncClient
 from openai import AsyncOpenAI
 from prefect import flow

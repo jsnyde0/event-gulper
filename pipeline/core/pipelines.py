@@ -1,8 +1,8 @@
 from typing import Any, List
 
 import logfire
+from event_gulper_models import EventDetail
 
-from core.models.events import EventDetail
 from core.sources.protocols import DataSource
 from core.transforms.protocols import Transformer
 

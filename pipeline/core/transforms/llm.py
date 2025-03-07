@@ -4,9 +4,9 @@ import json
 from typing import List
 
 import instructor
+from event_gulper_models import EventDetail
 from prefect.tasks import task
 
-from core.models.events import EventDetail
 from core.transforms.protocols import Transformer
 
 

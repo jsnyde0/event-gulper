@@ -2,12 +2,12 @@ import os
 from datetime import datetime
 from typing import AsyncGenerator, List
 
+from event_gulper_models import Base, EventDetail, EventDetailDB, EventURL
 from prefect import task
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from core.models.events import Base, EventDetail, EventDetailDB, EventURL
 from core.transforms.protocols import Transformer
 
 # Get database connection string from environment variables

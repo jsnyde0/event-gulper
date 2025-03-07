@@ -8,6 +8,7 @@ dependencies = [
     "asyncpg>=0.30.0",
     "beautifulsoup4>=4.13.3",
     "debugpy>=1.8.12",
+    "event-gulper-models",
     "httpx>=0.28.1",
     "instructor>=1.7.2",
     "logfire>=3.6.2",
@@ -26,3 +27,6 @@ dependencies = [
 # Explicitly tell setuptools where to find the packages
 where = ["."]  # Look in the current directory
 include = ["pipeline*"]  # Include pipeline and all its subpackages
+
+[tool.uv.sources]
+event-gulper-models = { workspace = true }
