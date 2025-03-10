@@ -1,44 +1,36 @@
-# event-gulper
+# Event Gulper Pipeline
 
-Event scraper for Berlin events using LLMs.
+Event scraping pipeline component using LLMs.
 
-## Setup
+## Overview
 
-1. Create a `.env` file in the root directory
+This package contains the event scraping and processing pipeline that:
+1. Scrapes events from various sources (currently Siegessäule)
+2. Uses LLMs to extract structured data
+3. Stores events in PostgreSQL database
 
-## Development with Docker
+## Development
 
-### Local Development
+See the root README.md for complete development instructions.
 
-You can run the entire pipeline stack using Docker Compose:
+### Pipeline-Specific Configuration
 
-```bash
-cd pipeline
-docker compose up --build
-```
+The pipeline can be configured using environment variables:
+- `DATABASE_URL`: PostgreSQL connection string
+- `PREFECT_API_URL`: Prefect server API URL
+- (Add other pipeline-specific variables)
 
-This starts the orchestrator, database, and scraper services as defined in the `docker-compose.yml` file.
+### Module Structure
 
-### Debugging
-
-To debug the pipeline using VS Code and Docker:
-
-1. Start the services in debug mode:
-   ```bash
-   cd pipeline
-   docker compose -f docker-compose.yml -f docker-compose.debug.yml up --build
-   ```
-
-2. The scraper service will start and wait for the debugger to connect
-
-3. In VS Code, start the "Python: Remote Attach (Docker)" debug configuration
-
+- `core/`: Core pipeline components and utilities
+- `orchestration/`: Prefect flows and deployments
+- `tests/`: Pipeline-specific tests
 
 ## Testing
 
-Run tests:
-
+Run pipeline-specific tests:
 ```bash
+cd pipeline
 uv run pytest
 ```
 

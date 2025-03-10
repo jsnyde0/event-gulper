@@ -2,45 +2,48 @@
 
 Event scraper for Berlin events using Agentic AI.
 
+## Project Structure
+
+- `pipeline/`: Event scraping and processing pipeline
+- `models/`: Shared data models
+- `api/`: API service
+
 ## Setup
 
-1. Create a `.env` file in the root directory
+Create a `.env` file in the root directory (see `.env.example`)
 
-2. Install dependencies:
-
-```bash
-uv sync --all-extras --dev
-```
 
 ## Development
 
-1. Start the Prefect development server:
+### Using Docker (Recommended)
 
+1. Start all services:
 ```bash
-uv run prefect server start
+docker compose up --build
 ```
 
-The Prefect UI will be available at [http://127.0.0.1:4200](http://127.0.0.1:4200).
+This starts:
+- PostgreSQL database
+- Prefect orchestrator (UI at http://localhost:4200)
+- Pipeline service
 
-2. Register your scraper deployment by running:
+### Debugging with Docker
 
+1. Start services in debug mode:
 ```bash
-uv run -m core.serve_scraper
+docker compose -f docker-compose.yml -f docker-compose.debug.yml up --build
 ```
 
-This command uses the `serve()` method (in `serve_scraper.py`) to register the deployment named `siegessaeule-scraper-deployment` without an automatic interval. The flow will only run when you trigger it manually from the Prefect dashboard (or via an API call).
+2. The pipeline service will wait for debugger connection on port 5678
 
-3. Run tests:
+3. Use VS Code's "Python: Remote Attach" to connect to the debugger
+
+### Run tests
 
 ```bash
 uv run pytest
 ```
 
-## Project Structure
-
-- `pipeline/`: Event scraping and processing.
-- `api/`: API service (WIP).
-- `models/`: Shared data models (WIP).
 
 ## Contributing
 
