@@ -1,0 +1,10 @@
+services:
+  pipeline:
+    ports:
+      - "5678:5678"  # Debug port
+    volumes:
+      - ./pipeline:/app/pipeline  # Mount pipeline code
+      - ./models:/app/models      # Mount models code
+    environment:
+      PYTHONPATH: /app/pipeline  # This is the key addition
+    command: ["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "--wait-for-client", "-m", "orchestration.siegessaeule_deployment"]
