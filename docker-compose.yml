@@ -48,6 +48,18 @@ services:
       db:
         condition: service_healthy
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/events
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   prefect-data:
   postgres-data:

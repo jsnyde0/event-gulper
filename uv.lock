@@ -3,8 +3,8 @@ requires-python = ">=3.12"
 
 [manifest]
 members = [
+    "api",
     "event-gulper",
-    "event-gulper-api",
     "event-gulper-models",
     "pipeline",
 ]
@@ -144,6 +144,27 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a3/73/199a98fc2dae33535d6b8e8e6ec01f8c1d76c9adb096c6b7d64823038cde/anyio-4.8.0.tar.gz", hash = "sha256:1d9fe889df5212298c0c0723fa20479d1b94883a2df44bd3897aa91083316f7a", size = 181126 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/46/eb/e7f063ad1fec6b3178a3cd82d1a3c4de82cccf283fc42746168188e1cdd5/anyio-4.8.0-py3-none-any.whl", hash = "sha256:b5011f270ab5eb0abf13385f851315585cc37ef330dd88e27ec3d34d651fd47a", size = 96041 },
+]
+
+[[package]]
+name = "api"
+version = "0.1.0"
+source = { virtual = "api" }
+dependencies = [
+    { name = "event-gulper-models" },
+    { name = "fastapi" },
+    { name = "psycopg2-binary" },
+    { name = "sqlalchemy" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "event-gulper-models", editable = "models" },
+    { name = "fastapi", specifier = ">=0.115.8" },
+    { name = "psycopg2-binary", specifier = ">=2.9.10" },
+    { name = "sqlalchemy", specifier = ">=2.0.38" },
+    { name = "uvicorn", specifier = ">=0.34.0" },
 ]
 
 [[package]]
@@ -524,11 +545,6 @@ requires-dist = [
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "ruff", specifier = ">=0.9.7" },
 ]
-
-[[package]]
-name = "event-gulper-api"
-version = "0.1.0"
-source = { virtual = "api" }
 
 [[package]]
 name = "event-gulper-models"

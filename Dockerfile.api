@@ -10,11 +10,11 @@ WORKDIR /app
 # Copy workspace configuration and all packages
 COPY pyproject.toml ./
 COPY models/ ./models/
-COPY pipeline/ ./pipeline/
+COPY api/ ./api/
 
 # Install packages from workspace root
 RUN uv pip install --system ./models
-RUN uv pip install --system ./pipeline
+RUN uv pip install --system ./api
 
 # Final stage
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
@@ -22,26 +22,25 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PREFECT_SERVER_API_PORT=4200
 
 # Create non-root user
 RUN useradd --create-home app
 USER app
 
-WORKDIR /app/pipeline
+WORKDIR /app/api
 
 # Copy only the installed packages
 COPY --from=builder --chown=app:app /usr/local/lib/python3.12/site-packages/ /usr/local/lib/python3.12/site-packages/
 
 # Copy the pipeline source code to maintain the same structure
-COPY --from=builder --chown=app:app /app/pipeline /app/pipeline
+COPY --from=builder --chown=app:app /app/api /app/api
 COPY --from=builder --chown=app:app /app/models /app/models
 
 # Set PYTHONPATH directly
-ENV PYTHONPATH=/app/pipeline
+ENV PYTHONPATH=/app/api
 
 # Expose the Prefect server port
-EXPOSE 4200
+EXPOSE 8000
 
 # Run the Prefect deployment serve script
-CMD ["python", "-m", "orchestration.siegessaeule_deployment"]
+CMD ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

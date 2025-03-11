@@ -1,4 +1,18 @@
 [project]
-name = "event-gulper-api"
+name = "api"
 version = "0.1.0"
 requires-python = ">=3.12"
+dependencies = [
+    "event-gulper-models",
+    "fastapi>=0.115.8",
+    "psycopg2-binary>=2.9.10",
+    "sqlalchemy>=2.0.38",
+    "uvicorn>=0.34.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["api*"]
+
+[tool.uv.sources]
+event-gulper-models = { workspace = true }
