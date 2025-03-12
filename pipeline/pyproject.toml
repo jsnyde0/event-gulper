@@ -21,6 +21,7 @@ dependencies = [
     "pytest-asyncio>=0.25.3",
     "pytest-httpx>=0.35.0",
     "sqlalchemy>=2.0.38",
+    "telethon>=1.39.0",
 ]
 
 [tool.setuptools.packages.find]
